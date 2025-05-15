@@ -17,7 +17,8 @@ A sample `boringtun@.service` to be placed inside `/etc/systemd/system`
 ```ini
 [Unit]
 Description=BoringTun via wg-quick(8) for %I
-After=network-online.target nss-lookup.target               Wants=network-online.target nss-lookup.target
+After=network-online.target nss-lookup.target
+Wants=network-online.target nss-lookup.target
 
 [Service]
 Type=oneshot
