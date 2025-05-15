@@ -13,7 +13,7 @@ export PATH="$HOME/.cargo/bin:$PATH"
 rustc --version
 cargo install cargo-deb
 cd boringtun
-cargo deb --deb-version 0.0.1-bpo01
+cargo deb -p boringtun-cli --deb-version 0.0.1-bpo01
 mkdir -p /tmp/hosttmp/boringtun_deb
 cp -v ./target/debian/*deb /tmp/hosttmp/boringtun_deb/
 
