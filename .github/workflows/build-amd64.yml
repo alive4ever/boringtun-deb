@@ -1,0 +1,42 @@
+name: Building boringtun for amd64
+run-name: ${{ github.actor }} is building boringtun for amd64 debian
+on:
+  push:
+    tags:
+      - '*'
+permissions:
+  contents: write
+
+jobs:
+  build-for-amd64:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Preparing chroot
+        id: preparing-chroot
+        run: |
+          sudo apt update
+          sudo apt upgrade -y
+          sudo apt install -y mmdebstrap systemd-container debian-archive-keyring
+          sudo mmdebstrap --arch=amd64 --include sudo,curl,build-essential,devscripts,git bookworm /var/lib/machines/amd64-debian
+          echo "Container successfully created"
+      - name: Preparing repository
+        uses: actions/checkout@v4
+      - name: Building boringtun
+        id: building_boringtun
+        run: |
+          cp -v ${{ github.workspace }}/prepare-chroot.sh /tmp/
+          cp -v ${{ github.workspace }}/build.sh /tmp/
+          sudo systemd-nspawn --bind /tmp:/tmp/hosttmp --bind-ro /etc/resolv.conf --hostname localhost --machine amd64-debian -- sh /tmp/hosttmp/prepare-chroot.sh
+          sudo systemd-nspawn --bind /tmp:/tmp/hosttmp --bind-ro /etc/resolv.conf --hostname localhost --machine amd64-debian --user builder -- sh /tmp/hosttmp/build.sh
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: /tmp/boringtun_deb/
+      - name: Creating release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            /tmp/boringtun_deb/*
+
